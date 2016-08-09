@@ -428,3 +428,160 @@ console.log(deepEqual(obj, {here: 1, object: 2}));
 // → false
 console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
 // → true
+
+
+
+// Chapter 5
+
+
+//1 Use the reduce method in combination with the concat method to “flatten” an array of arrays into a single array that has all the elements of the input arrays.
+
+//You can include a start argument but, if you leave it off and have at least one element in the array it starts at 0.
+
+var arrays = [[1, 2, 3], [4, 5], [6]];
+
+console.log(arrays.reduce(function(a, b) {
+	return(a.concat(b));
+}), 1);
+
+//4 Arrays also come with the standard methods every and some. Both take a predicate function that, when called with an array element as argument, returns true or false. Just like && returns a true value only when the expressions on both sides are true, every returns true only when the predicate returns true for all elements of the array. Similarly, some returns true as soon as the predicate returns true for any of the elements. They do not process more elements than necessary—for example, if some finds that the predicate holds for the first element of the array, it will not look at the values after that. Write two functions, every and some, that behave like these methods, except that they take the array as their first argument rather than being a method.
+
+
+//These functions are very similar. They both test for isNaN however, the every one checks to see if they are all not a number. If so, we return true. The tricky part is that isNaN(NaN) returns true which we want but if it is true we don't want to return false, we want the opposite so we use the not operator. !true is false. So if all numbers are NaN the for loop expires and we return true. Else if any are actually a number we get !false which is true and will return false.
+
+function every(arr, condition) {
+	for (var i = 0; i < arr.length; i++) {
+    	if (!condition(arr[i])) {
+           	return false;
+           } //end if
+    } //end for
+  return true;
+}
+
+//similar situtation but, all we want is at least one element in the array to be NaN so we don't need to worry about using the not operator. If all elements in an array are a number the loop will end and we send back false. If even one is NaN we found one so can send back true.
+
+function some(arr, condition) {
+	for (var i = 0; i < arr.length; i++) {
+      if (condition(arr[i])) {
+      	return true;
+      } //end if
+    }//end for
+  return false;
+}
+
+console.log(every([NaN, NaN, NaN], isNaN));
+// → true
+console.log(every([NaN, NaN, 4], isNaN));
+// → false
+console.log(some([NaN, 3, 4], isNaN));
+// → true
+console.log(some([2, 3, 4], isNaN));
+// → false
+
+//Chapeter 6
+
+//1 Write a constructor Vector that represents a vector in two-dimensional space. It takes x and y parameters (numbers), which it should save to properties of the same name. Give the Vector prototype two methods, plus and minus, that take another vector as a parameter and return a new vector that has the sum or difference of the two vectors’ (the one in this and the parameter) x and y values. Add a getter property length to the prototype that computes the length of the vector—that is, the distance of the point (x, y) from the origin (0, 0).
+
+//Hint: Adding a getter property to the constructor can be done with the Object.defineProperty function. To compute the distance from (0, 0) to (x, y), you can use the Pythagorean theorem, which says that the square of the distance we are looking for is equal to the square of the x-coordinate plus the square of the y-coordinate. Thus, √(x2 + y2) is the number you want, and Math.sqrt is the way you compute a square root in JavaScript.
+
+
+//Problem was straight forward. Just read and write from it. The hint gave the formula for length. When a getter but no setter is defined, writing to the property is simply ignored.
+
+
+function Vector(x, y) {
+	this.x = x;
+  	this.y = y;
+}
+
+Vector.prototype.plus = function(anotherVec) {
+	return new Vector(this.x + anotherVec.x, this.y + anotherVec.y);
+}
+
+Vector.prototype.minus = function(anotherVec) {
+	return new Vector(this.x - anotherVec.x, this.y - anotherVec.y);
+}
+
+Object.defineProperty(Vector.prototype, "length", {
+  get: function() {
+	return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+});
+
+console.log(new Vector(1, 2).plus(new Vector(2, 3)));
+// → Vector{x: 3, y: 5}
+console.log(new Vector(1, 2).minus(new Vector(2, 3)));
+// → Vector{x: -1, y: -1}
+console.log(new Vector(3, 4).length);
+// → 5
+
+
+
+//2 Implement a cell type named StretchCell(inner, width, height) that conforms to the table cell interface described earlier in the chapter. It should wrap another cell (like UnderlinedCell does) and ensure that the resulting cell has at least the given width and height, even if the inner cell would naturally be smaller.You’ll have to store all three constructor arguments in the instance object. The minWidth and minHeight methods should call through to the corresponding methods in the inner cell but ensure that no number less than the given size is returned (possibly using Math.max). Don’t forget to add a draw method that simply forwards the call to the inner cell.
+
+
+//Most of this I understood and did without a problem. The draw function, was just guess work. I looked in the chapter and found the draw used earlier, I removed the one and it worked. I don't understand it though.
+
+
+function StretchCell(inner, width, height) {
+	this.inner = inner;
+  	this.width = width;
+  	this.height = height;
+}
+
+StretchCell.prototype.minWidth = function() {
+  return Math.max(this.width, this.inner.minWidth());
+};
+
+StretchCell.prototype.minHeight = function() {
+  return Math.max(this.height, this.inner.minHeight());
+};
+
+StretchCell.prototype.draw = function(width, height) {
+  return this.inner.draw(width, height);
+};
+
+
+var sc = new StretchCell(new TextCell("abc"), 1, 2);
+console.log(sc.minWidth());
+// → 3
+console.log(sc.minHeight());
+// → 2
+console.log(sc.draw(3, 2));
+// → ["abc", "   "]
+
+
+//Chapter 8
+
+Retry
+//
+//Say you have a function primitiveMultiply that, in 50 percent of cases, multiplies two numbers, and in the other 50 percent, raises an exception of type MultiplicatorUnitFailure. Write a function that wraps this clunky function and just keeps trying until a call succeeds, after which it returns the result.Make sure you handle only the exceptions you are trying to handle.
+
+//I wanted to see what was actually happening so when I created my catch I have it logging to the console so I could see how many times the primitiveMultiply was actually failing. This could have been done by also keeping a counter. Also, in order to not see this you could add a ! operator in the if statement of the catch and just throw the e instead of creating an else statement
+
+
+function MultiplicatorUnitFailure() {}
+
+function primitiveMultiply(a, b) {
+  if (Math.random() < 0.5)
+    return a * b;
+  else
+    throw new MultiplicatorUnitFailure();
+}
+
+function reliableMultiply(a, b) {
+  // Your code here.
+  for (;;){
+  	try{
+    	return primitiveMultiply(a, b);
+    } catch (e) {
+    	if(e instanceof MultiplicatorUnitFailure) {
+        	console.log("Couldn't Do The Math");
+        } else {
+          throw e;
+        }
+   	 }	
+  }
+}
+
+console.log(reliableMultiply(8, 8));
+// → 64
